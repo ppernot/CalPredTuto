@@ -1,3 +1,0 @@
-# Statistical modeling of calibration data {#stat-model}
-
-Here is a review of existing methods.
