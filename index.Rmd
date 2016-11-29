@@ -4,12 +4,16 @@ author: "Pascal Pernot, Michèle Désenfant and François Hennebelle"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output:
-  bookdown::gitbook: default
+  bookdown::gitbook
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
+github-repo: ppernot/CalPredTuto
 ---
 
+# Préambule
+
+TBD
 
 
 
@@ -20,5 +24,5 @@ knitr::write_bib(c(
 ), 'packages.bib')
 ```
 
-# Préambule
+
 
