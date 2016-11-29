@@ -104,9 +104,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="./">Calibration - Prediction</a></li>
 
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Préambule</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preamble</a></li>
 <li class="chapter" data-level="2" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>2</b> Introduction</a></li>
-<li class="chapter" data-level="3" data-path="stat-model.html"><a href="stat-model.html"><i class="fa fa-check"></i><b>3</b> Statistical modeling of calibration data</a></li>
+<li class="chapter" data-level="3" data-path="stat-model.html"><a href="stat-model.html"><i class="fa fa-check"></i><b>3</b> Statistical modeling of calibration data</a><ul>
+<li class="chapter" data-level="3.1" data-path="stat-model.html"><a href="stat-model.html#calibration-model"><i class="fa fa-check"></i><b>3.1</b> Calibration model</a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="methods.html"><a href="methods.html"><i class="fa fa-check"></i><b>4</b> Calibration Methods</a></li>
 <li class="chapter" data-level="5" data-path="presentation.html"><a href="presentation.html"><i class="fa fa-check"></i><b>5</b> Presentation of results</a><ul>
 <li class="chapter" data-level="5.1" data-path="presentation.html"><a href="presentation.html#example-one"><i class="fa fa-check"></i><b>5.1</b> Example one</a></li>
@@ -136,8 +138,16 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="stat-model" class="section level1">
 <h1><span class="header-section-number">Chapitre 3</span> Statistical modeling of calibration data</h1>
-<p>Here is a review of existing methods.</p>
+<div id="calibration-model" class="section level2">
+<h2><span class="header-section-number">3.1</span> Calibration model</h2>
+One considers datasets of the type <span class="math inline">\(D=\{x_i,y_i\}_{i=1}^N\)</span> where <span class="math inline">\(x\)</span> is the <em>control variable</em>, and <span class="math inline">\(y\)</span> the <em>dependent variable</em>. A calibration model <span class="math inline">\(m(.;\theta)\)</span> with parameters <span class="math inline">\(\theta\)</span> links these variables
+\begin{equation}
+y_i = m(x_i;\theta) + \epsilon_i 
+(\#eq:cal-mod)
+\end{equation}
+<p>where <span class="math inline">\(\epsilon_i\)</span> is a noise variable to be defined according to the available information on data uncertainty.</p>
 
+</div>
 </div>
             </section>
 
@@ -184,6 +194,17 @@ gitbook.start({
 });
 </script>
 
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    if (location.protocol !== "file:" && /^https?:/.test(script.src))
+      script.src  = script.src.replace(/^https?:/, '');
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 </body>
 
 </html>
