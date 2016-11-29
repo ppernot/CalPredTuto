@@ -1,3 +1,11 @@
 # Statistical modeling of calibration data {#stat-model}
 
-Here is a review of existing methods.
+## Calibration model
+
+One considers datasets of the type $D=\{x_i,y_i\}_{i=1}^N$ where $x$ is the _control variable_, and $y$ the _dependent variable_. 
+A calibration model $m(.;\theta)$ with parameters $\theta$ links these variables
+\begin{equation}
+y_i = m(x_i;\theta) + \epsilon_i 
+(\#eq:cal-mod)
+\end{equation}
+where $\epsilon_i$ is a noise variable to be defined according to the available information on data uncertainty.
