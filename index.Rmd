@@ -4,7 +4,7 @@ author: "Pascal Pernot, Michèle Désenfant and François Hennebelle"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output:
-  bookdown::tufte_html_book:
+  bookdown::gitbook:
     toc: yes
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
