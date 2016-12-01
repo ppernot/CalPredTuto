@@ -5,10 +5,17 @@
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 rm(list = ls()); gc() # Clean environment
 
-library(rgumlib)
+if(!require(rstan))
+  install.packages("rstan",dependencies=TRUE)
 library(rstan)
+rstan_options(auto_write = TRUE)
+if(!require(rgumlib))
+  devtools::install_github("ppernot/rgumlib")
+if(!require(pander))
+  install.packages("pander",dependencies=TRUE)
 library(pander)
 panderOptions('knitr.auto.asis', TRUE)
+
 set.seed(1234) # Initialise la graine du RNG
 
 # Couleurs transparente
