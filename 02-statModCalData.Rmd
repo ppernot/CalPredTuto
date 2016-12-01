@@ -1,10 +1,90 @@
 # Statistical modeling of calibration data {#stat-model}
 
-## Calibration model
+## Calibration models
 
-One considers datasets of the type $D=\{x_i,y_i\}_{i=1}^N$ where $x$ is the _control variable_, and $y$ the _dependent variable_. 
-A calibration model $m(.;\theta)$ with parameters $\theta$ links these variables
+One considers datasets of the type $D=\{x_i,y_i\}_{i=1}^N$ where $x$ 
+is the _control variable_, and $y$ the _dependent variable_. 
+A calibration model $m(.;\theta)$ with parameters $\theta$ links 
+these variables
 \begin{equation}
-y_i = m(x_i;\theta) + \epsilon_i (\#eq:cal-mod)
+  y_i = m(x_i;\theta) + \epsilon_i, 
+(\#eq:cal-mod)
 \end{equation}
-where $\epsilon_i$ is a noise variable to be defined according to the available information on data uncertainty.
+where $\epsilon_i$ is an additive noise variable to be defined 
+according to the available information on data uncertainty.
+
+### Random errors
+
+In many cases, one assumes that random errors are described 
+by a normal distribution centered at zero
+\begin{equation}
+  \epsilon_i \sim \mathcal{N}(0,\sigma_i), 
+(\#eq:norm-err)
+\end{equation}
+where $\sigma_i$ is the standard deviation of measurements at $x_i$, 
+which might be constant.
+
+### Systematic errors
+
+The GUM [@GUM] recommends to incorporate systematic errors in 
+the measurement model. What remains in the uncertainty model 
+is the uncertainty on such corrections.
+
+However, the measurement uncertainties 
+published in the scientific or technical literature often result 
+from the combination of random and systematic contributions. 
+In such cases, a variance-covariance matrix ($\Sigma_y$) 
+should ideally be provided with the data [@GUMSupp2]. 
+The error variables are no longer statistically independent 
+and should be described as
+\begin{equation}
+  \{\epsilon_i\}_{i=1}^N \sim \mathcal{N}_N(0,\Sigma_y), 
+(\#eq:norm-err-mult)
+\end{equation}
+where $\mathcal{N}_N(.,.)$ is a $N$-variate normal distribution.
+
+Unfortunately, it is rarely the case that $\Sigma_y$ is available,
+or when available it might be corrupted by excessive rounding.
+The modeler has therefore often to build $\Sigma_y$ from limited
+information, and/or to do some reverse uncertainty engineering, 
+_i.e._ to infer the respective contributions of both error types.
+Note that this is possible only in a limited number of cases,
+and with strong hypotheses on the contributions.
+
+Considering two error sources, one redefines the calibration model
+\begin{equation}
+  y_i = m(x_i;\theta) + \epsilon_{i,r} + \epsilon_s,
+(\#eq:cal-mod-sys)
+\end{equation}
+where
+\begin{equation}
+  \epsilon_{r,s} \sim  N(0,u^2_{r,s}).
+(\#eq:norm-err-sys)
+\end{equation}
+$u_r$ et $u_s$ are unknown with constraint 
+\begin{equation}
+  u_r^2 + u_s^2 = u_{tot}^2
+(\#eq:utot)
+\end{equation}
+
+The covariance of two measurements is
+\begin{equation}
+  {\rm Cov}(y_i,y_j) = u_r^2\ \delta_{ij} + u_s^2
+(\#eq:cov)
+\end{equation}
+  
+One can also express the covariance matrix using a correlation
+coefficient $\rho$
+\begin{equation}
+  \boldsymbol{U}=u^{2}_{tot}\left(\begin{array}{cccc}
+    1 & \rho & \cdots & \rho\\
+    \rho & 1 & \ddots & \vdots\\
+    \vdots & \ddots & \ddots & \rho\\
+    \rho & \cdots & \rho & 1
+    \end{array}\right),
+    \ {\rm with}\  \rho=\frac{u^2_{s}}{u^2_{tot}}
+(\#eq:cov-mat)
+\end{equation}
+
+
+
