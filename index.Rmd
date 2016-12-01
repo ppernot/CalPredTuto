@@ -18,6 +18,8 @@ TBD
 
 
 ```{r include=FALSE}
+devtools::install_github("ppernot/rgumlib")
+
 # automatically create a bib database for R packages
 knitr::write_bib(c(
   .packages(), 'bookdown', 'knitr', 'rmarkdown'
