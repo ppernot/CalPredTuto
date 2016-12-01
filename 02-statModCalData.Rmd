@@ -33,50 +33,44 @@ is the uncertainty on such corrections.
 However, the measurement uncertainties 
 published in the scientific or technical literature often result 
 from the combination of random and systematic contributions. 
-In such cases, a variance-covariance matrix ($\Sigma_y$) 
+In such cases, a variance-covariance matrix ($\boldsymbol{\Sigma}_y$) 
 should ideally be provided with the data [@GUMSupp2]. 
 The error variables are no longer statistically independent 
-and should be described as
+and should be described as a $N$-vector
 \begin{equation}
-  \{\epsilon_i\}_{i=1}^N \sim \mathcal{N}_N(0,\Sigma_y), 
+  \boldsymbol{\epsilon} \sim \mathcal{N}_N(0,\boldsymbol{\Sigma}_y), 
 (\#eq:norm-err-mult)
 \end{equation}
 where $\mathcal{N}_N(.,.)$ is a $N$-variate normal distribution.
 
-Unfortunately, it is rarely the case that $\Sigma_y$ is available,
+Unfortunately, it is rarely the case that $\boldsymbol{\Sigma}_y$ is available,
 or when available it might be corrupted by excessive rounding.
-The modeler has therefore often to build $\Sigma_y$ from limited
+The modeler has therefore often to build $\boldsymbol{\Sigma}_y$ from limited
 information, and/or to do some reverse uncertainty engineering, 
 _i.e._ to infer the respective contributions of both error types.
 Note that this is possible only in a limited number of cases,
 and with strong hypotheses on the contributions.
 
-Considering two error sources, one redefines the calibration model
+
+Considering that two error sources have been aggregated into
+a single one with standard deviation $u_{tot}$, one redefines 
+the calibration model as
 \begin{equation}
   y_i = m(x_i;\theta) + \epsilon_{i,r} + \epsilon_s,
 (\#eq:cal-mod-sys)
 \end{equation}
-where
-\begin{equation}
-  \epsilon_{r,s} \sim  N(0,u^2_{r,s}).
-(\#eq:norm-err-sys)
-\end{equation}
-$u_r$ et $u_s$ are unknown with constraint 
-\begin{equation}
-  u_r^2 + u_s^2 = u_{tot}^2
-(\#eq:utot)
-\end{equation}
+where $\epsilon_{\{r,s\}} \sim  N(0,u^2_{\{r,s\}})$.
+Both $u_r$ et $u_s$ are unknown with constraint $u_r^2 + u_s^2 = u_{tot}^2$.
 
 The covariance of two measurements is
 \begin{equation}
-  {\rm Cov}(y_i,y_j) = u_r^2\ \delta_{ij} + u_s^2
+  {\rm Cov}(y_i,y_j) = u_r^2\ \delta_{ij} + u_s^2,
 (\#eq:cov)
 \end{equation}
-  
-One can also express the covariance matrix using a correlation
+  and one can also express the covariance matrix using a correlation
 coefficient $\rho$
 \begin{equation}
-  \boldsymbol{U}=u^{2}_{tot}\left(\begin{array}{cccc}
+  \boldsymbol{\Sigma}_y=u^{2}_{tot}\left(\begin{array}{cccc}
     1 & \rho & \cdots & \rho\\
     \rho & 1 & \ddots & \vdots\\
     \vdots & \ddots & \ddots & \rho\\

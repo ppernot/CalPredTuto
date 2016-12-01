@@ -1,3 +1,441 @@
 # Cases study {#cases}
 
-We have finished a nice book.
+## Importance of systematic errors
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+rm(list = ls()); gc() # Clean environment
+
+library(rgumlib)
+library(rstan)
+library(pander)
+panderOptions('knitr.auto.asis', TRUE)
+set.seed(1234) # Initialise la graine du RNG
+
+# Couleurs transparente
+blue_tr=rgb(0.1,0.1,0.9,alpha=0.1) 
+red_tr =rgb(0.9,0.1,0.1,alpha=0.1) 
+
+prettyChi2 <- function(reg) {
+  ndf = reg$df
+  chi2 = sum(reg$weights*reg$residuals^2)
+  ndig= 3
+  cat('*** Chi2 Analysis ***\n',
+      paste0(reg$call)[2],'\n\n',
+      'ndf      = ',ndf,'\n',
+      'chi2_obs = ',format(chi2,digits=ndig),' (',
+      'chi2_red = ',format(chi2/ndf,digits=ndig+1),')\n',
+      'P(chi2>chi2_obs) = ',
+      format(pchisq(chi2,df=ndf,
+                    lower.tail=FALSE),digits=ndig),'\n',
+      'Q05=',format(qchisq(0.05,df=ndf),digits=ndig),', ',
+      'Q95=',format(qchisq(0.95,df=ndf),digits=ndig))
+}
+```
+
+### Synthetic data
+
+```{r, message=FALSE, warning=FALSE}
+# Define model
+fExpr = function(a,b,c) a + b*x + c*x^2
+
+xm = 1:10 # Controle variable
+xp = seq(0,15,by=0.1) # Grille de points pour tracer les courbes
+
+x = xm
+a = 1; b = 2; c = 3
+ym = fExpr(a,b,c) # Evaluate model
+ 
+sdm = 10
+yo = ym + sdm * rnorm(length(ym),mean=0,sd=1) # Add random noise
+
+uym = 3*rep(sdm,length(ym)) # Declare larger uncertainty 
+
+pander(data.frame(xm,yo,uym), digits=0)
+```
+
+### Simple regression with quadratic calibration model
+
+The model is
+$$
+  y_i = m(x_i;\theta) + \epsilon_{i,tot},
+$$
+with
+$$
+  m_i(\theta) = a + b*x_i + c*x_i^2
+$$
+
+
+A weighted least-squares fit is done, with weights $w_i = 1/u^2_{tot}$.
+
+```{r, message=FALSE, warning=FALSE}
+reg3 = lm(yo ~ 1 + xm + I(xm^2), 
+         weights=1/uym^2)
+```
+
+On trace la courbe du modèle correspondant aux valeurs optimales des paramètres.
+Le fit a l'air très bon (le modèle passe par toutes les barres d'erreur)...
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+par(mar=c(4,4,1,1))
+plot(xm,yo,col='red',pch=19,cex=0.75,
+     xlab = 'x', ylab='y',
+     ylim=c(min(yo-2*uym),max(yo+2*uym)))
+grid(); box()
+lines(xp,predict(reg3,newdata=data.frame(xm=xp)),col='orange')
+segments(xm,yo-2*uym,xm,yo+2*uym,col='red')
+legend('topleft',bty='n',
+       legend = c('Exp. data','95% err. bars','Best fit'),
+        pch=c(19,-1,-1),lty=c(0,1,1),lwd=1, col=c(2,2,'orange') )
+
+
+```
+
+
+#### Validation
+
+Considérons d'abord l'affichage standard des résultats de la 
+régression linéaire pour `lm()`.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+summary(reg3) # Show results
+```
+Tout semble normal: les valeurs de $R^2$ sont bonnes. La seule
+alerte vient du fait que pour une régression pondérée, on devrait
+avoir un écart-type des résidus proche de 1. 
+Ici, il vaut `r round(summary(reg3)$sigma,2)`.
+
+```{block2, type='rmdwarning'}
+On notera que les incertitudes sur les paramètres sont identiques
+à celles obtenues précédemment avec des incertitudes de mesure trois
+fois moindres. La philosophie implémentée dans `lm()` est de calculer
+les incertitudes des paramètres après correction/scaling de l'écart-type
+des résidus. Le programme ajuste donc les incertitudes de mesure pour
+rendre la régression statistiquement valide. En pratique, le programme
+utilise uniquement les poids et détermine l'incertitude-type adéquate,
+comme pour la _méthode des moindres carrés ordinaire_ (OLS).
+Dans la mesure où il est suicidaire d'évaluer des incertitudes paramétriques
+pour un modèle non valide, ce choix est défendable.
+Pour outrepasser ce comportement et avoir une estimation des incertitudes
+paramétriques correspondant aux incertitudes de mesure réelles, il faut 
+corriger ces dernières en les divisant par l'écart-type des résidus affiché
+dans le résumé ($\sigma=$ `r round(summary(reg3)$sigma,2)`). 
+Dans notre exemple, cela revient en gros à les multiplier par 3...
+```
+
+Une analyse du $\chi^2$ est sans doute plus parlante:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+prettyChi2(reg3)
+```
+La valeur du $\chi^2$ est trop petite, invalidant le modèle statistique.
+Cela peut provenir de deux sources:  
+
+* le modèle est trop complexe et on ajuste les variations dues au bruit;
+* les incertitudes déclarées sont trop grandes (ce qui est notre cas).
+
+On peut confirmer ce point par l'examen des erreurs résiduelles. 
+On voit bien que la dispersion des erreurs est nettement plus petite 
+que les incertitudes déclarées.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+res = reg3$residuals
+par(mar=c(4,4,1,1))
+plot(xm,res,col='red',pch=19,cex=0.75,
+     xlab='x', ylab='résidus',
+     ylim=1.25*c(min(res-2*uym),max(res+2*uym)))
+grid(); box()
+segments(xm,res-2*uym,xm,res+2*uym,col='red')
+abline(h=2*sd(res)*c(-1,1),col='blue',lty=2)
+abline(h=0)
+legend('bottomright',ncol=3, bty='n',
+       legend=c('Résidus','95% error bars','95% CI resid.'),
+       pch=c(19,-1,-1),
+       lty=c(0,1,2),
+       col=c(2,2,4))
+
+```
+
+__Note.__ Souvent, des incertitudes trop grandes proviennent de l’agrégation 
+"sauvage" des contributions aléatoires et systématiques. 
+En toute rigueur, une matrice de covariance devrait être fournie dans
+ce cas, ou au moins un budget détaillé des contributions pour
+chaque point. 
+Si ce n'est pas le cas, on peut tenter d'analyser les données
+avec un modèle impliquant l'ajustement d'une matrice de variance-covariance
+(_cf._ ci-dessous).
+
+
+### Prise en compte des erreurs systématiques
+
+On redéfinit le modèle d'analyse (et de mesure)
+$$
+ y_i = m_i(\theta) + \epsilon_{i,r} + \epsilon_s,
+$$
+avec
+$$
+ \epsilon_{r,s} \sim  N(0,u^2_{r,s})
+$$
+
+#### Echantillon des paramètres d'étalonnage
+
+Pour générer un échantillon des paramètres compatibles avec 
+les données et leur modèle statistique, on utilise une méthode 
+de type Chaîne de Markov basée sur une approche bayésienne 
+(cf. [Stan](http://mc-stan.org)).
+
+On utilise la densité _a posteriori_
+$$
+  p(a,b,c,\rho|\boldsymbol{D},u_{tot}) \propto 
+    (\det \boldsymbol{\Sigma}_y)^{−1/2}
+   \exp\left(-\frac{1}{2}E^T.\boldsymbol{\Sigma}_y^{-1}.E\right)\ 
+    p(a,b,c,\rho)
+$$
+
+avec $E_i=y_i-m(x_i;a,b,c)$ et une densité _a priori_ uniforme $p(a,b,c,\rho)=c^{te}$.
+
+```{r}
+mod1 <- "
+data {
+  int N;
+  vector[N] x;
+  vector[N] y;
+  vector[N] uy;
+}
+parameters {
+  real a;
+  real b;
+  real c;
+  real <lower=0, upper=1> rho;
+}
+transformed parameters {
+  vector[N] mu_M;
+  cov_matrix[N] U;
+  
+  # Data cov matrix
+  for (k in 1:(N-1)) {
+    for (l in (k+1):N) {
+      U[k,l] = uy[k]*uy[l]*rho;
+      U[l,k] = U[k,l];
+    }
+    U[k,k] = uy[k]^2;
+  }
+  U[N,N] = uy[N]^2;
+  
+  mu_M = a + b * x + c * x .* x;
+  
+}
+model {
+  y ~ multi_normal(mu_M, U);
+}
+"
+```
+
+```{r stan01, message=FALSE, warning=FALSE, cache=TRUE}
+pars = c('a','b','c','rho')
+fit = stan(model_code = mod1,
+           model_name = 'Cov',
+           data = list(N =length(xm), x=xm, y=yo, uy=uym),
+           pars = pars,
+           iter = 2000, chains = 1, 
+           warmup = 1000, verbose=FALSE, refresh=0)
+print(fit)
+```
+
+__Note__:
+La valeur du coefficient de corrélation $\rho=$ `r signif(summary(fit)$c_summary[,'mean',1][4],2)` $\pm$ `r signif(summary(fit)$c_summary[,'sd',1][4],2)`
+est compatible avec la valeur attendue (`r signif(8/9,2)`), 
+et capture bien le rôle dominant des erreurs systématiques.
+Comme on a seulement `r length(xm)` points expérimentaux,
+il est normal que l'incertitude sur $\rho$ soit grande.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+Rho = extract(fit,'rho')[[1]]
+par(mar=c(4,4,1,1))
+hist(Rho,col=blue_tr,xlab=expression(rho),main='',freq=FALSE)
+abline(v=8/9,col=2,lwd=2)
+abline(v=quantile(Rho,probs=c(0.025,0.975)),col=3)
+legend('top', bty='n', 
+       legend=c('Valeur vraie','95% CI'),
+       col=c(2,3),
+       lwd=c(2,1))
+```
+
+```{r, fig.height=7}
+pairs(fit,gap=0)
+```
+
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+# Collecte des informations
+reg = reg3 # Pick valid model
+
+x.mu = coef(reg) # Collect best parameters from regression
+names(x.mu)=c('a','b','c') # Add names to conform to model parameters
+
+x.cov = vcov(reg) # Collect covariance matrix from regression
+
+# Unscaled version to compensate for the scaling applied by lm 
+# to ensure statistical validity (Birge ratio = 1)
+# sigma = sd(residuals)
+x.cov = x.cov /summary(reg)$sigma^2  
+
+x.u = diag(x.cov)^0.5
+
+x.cor = cov2cor(x.cov) # Correlation matrix
+# print(round(x.cor,digits=2))
+
+```
+
+### Comparison of parameters uncertainties
+
+Comparison of the parameters mean values and uncertainties
+shows that the data correlation matrix has a weak impact on
+the former (the differences are much smaller than the uncertainties).
+By contrast, the impact on the uncertainties is strong,
+especially for $b$ and $c$.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+b.m=summary(fit)$c_summary[,'mean',1][1:3]
+b.u=summary(fit)$c_summary[,'sd',1][1:3]
+U = data.frame(Correl.mean=b.m,Correl.unc=b.u,Indep.mean=x.mu,Indep.unc=x.u)
+rownames(U)=pars[1:3]
+pander(U,digits=2)
+```
+
+### Uncertainty propagation
+
+In order to recycle the sample generated by the Bayesian analysis,
+on performs UP by Monte Carlo. A sample of parameters for the
+"independent data" scenario is generated from the summary 
+statistics os the linear fit.
+
+#### Parameters samples
+
+```{r, message=FALSE, warning=FALSE}
+# Régression linéaire: on suppose une distribution normale
+# et on utilise les covariances estimées
+x.pdf = rep('norm',3) # Define PDFs
+X = xSample(M=1000, x.mu=x.mu, x.u=x.u, x.cor=x.cor, x.pdf=x.pdf)
+
+# Méthode MCMC: on utilise directement l'échantillon a posteriori
+X1 = cbind(extract(fit,'a')[[1]],
+          extract(fit,'b')[[1]],
+          extract(fit,'c')[[1]],
+          extract(fit,'rho')[[1]])
+colnames(X1)= pars
+```
+
+The scatterplot of the parameters samples illustrates clearly
+the difference in uncertainty and correlation.
+
+```{r, fig.height=7,echo=FALSE, message=FALSE, warning=FALSE}
+pairs(rbind(X,X1[,1:3]),gap=0,
+      col=c(rep(blue_tr,1000),rep(red_tr,1000)),
+      pch=16,cex=1.2)
+
+```
+
+
+#### Comparison of predictions
+
+One plots below the 95% prediction intervals using both 
+Monte Carlo samples. 
+The profiles are quite different:
+
+* in the "independent data" hypothesis, the dispersion of
+predictions is notably smaller than the error bars in the 
+calibration range and widens markedly as one extrapolates;
+
+* at the opposite, for the "correlated data" hypothesis,
+predictions uncertainty intervals cover most of the error bars
+in the calibration range (prevalence of systematic errors)
+des erreurs systématiques) and widens weakly out os this range.
+
+```{r, echo=FALSE, fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
+
+nMC=min(1000,nrow(X1))
+sY = matrix(NA,nrow=length(xp),ncol=nMC)
+for (i in 1:nMC) {
+  x = xp # Use all vector of x values
+  sY[,i] = fExpr(X1[i,1],X1[i,2],X1[i,3])
+} 
+probs=c(0.025,0.975)
+qconf=matrix(NA,nrow=length(xp),ncol=length(probs))
+uncC=c()
+for (i in 1:length(xp)){
+  qconf[i,] = quantile(sY[i,],probs=probs)
+  uncC[i] =sd(sY[i,])
+}
+
+par(mfrow=c(1,2),pty='s',tcl=-0.5,mar=c(4,4,2,1))
+ylim=range(qconf)
+plot(xp,xp,type='n',ylim=ylim, 
+     xlab = 'x', ylab='y = m(x;a,b,c)',
+     main='Correlated data')
+box();grid()
+polygon(x=c(xp,rev(xp)),
+        y=c(qconf[,1],rev(qconf[,2])),
+        col='gray80',border=NA)
+segments(xm,yo-2*uym,xm,yo+2*uym,col='red')
+segments(xm,yo-2*uym/3,xm,yo+2*uym/3,col='blue',lwd=2)
+points(xm,yo,col='red',pch=19,cex=0.75)
+lines(xp,predict(reg,newdata=data.frame(xm=xp)),col='orange',lwd=2)
+legend('topleft', bty='n',
+       legend = c('Data',expression(u[r]),'Best fit','MC 95%'),
+       col = c('red','blue','orange','gray80'),
+       pch = c(19,-1,-1,-1),
+       lty = c(0,1,1,1),
+       lwd = c(1,2,2,10))
+
+
+nMC=min(1000,nrow(X))
+sY = matrix(NA,nrow=length(xp),ncol=nMC)
+for (i in 1:nMC) {
+  x = xp # Use all vector of x values
+  sY[,i] = fExpr(X[i,1],X[i,2],X[i,3])
+}
+qconf=matrix(NA,nrow=length(xp),ncol=length(probs))
+uncI = c()
+for (i in 1:length(xp)) {
+  qconf[i,] = quantile(sY[i,],probs=probs)
+  uncI[i] =sd(sY[i,])
+}
+
+plot(xp,xp,type='n',ylim=ylim,      
+     xlab = 'x', ylab='y = m(x;a,b,c)',
+     main='Independent data')
+box();grid()
+polygon(x=c(xp,rev(xp)),
+        y=c(qconf[,1],rev(qconf[,2])),
+        col='gray80',border=NA)
+segments(xm,yo-2*uym,xm,yo+2*uym,col='red')
+segments(xm,yo-2*uym/3,xm,yo+2*uym/3,col='blue',lwd=2)
+points(xm,yo,col='red',pch=19,cex=0.75)
+lines(xp,predict(reg,newdata=data.frame(xm=xp)),col='orange',lwd=2)
+
+```
+
+The prediction uncertainties for both scenarii are plotted below
+and compared to $u_r$ and $u_{tot}$. 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+par(mfrow=c(1,1),pty='m',xaxs='i',yaxs='i')
+par(mar=c(4,4,2,1))
+plot(xp,uncI,type='l',col=4,lwd=2, 
+     ylim=c(0,max(uncI)),
+     main='Comparison of prediction uncertainty',
+     xlab = 'x', ylab='Prediction uncertainty')
+grid();box()
+lines(xp,uncC,col='orchid',lwd=2)
+us = sdm*c(3,1)
+abline(h=us,lty=c(2,3),col=1)
+rug(xm,lwd=2,col=2)
+legend('topleft', bty='n',
+       legend=c('Measurements','Independent data','Correlated data'),
+       col=c(2,4,'orchid'),
+       lwd=c(2,2,2),
+       lty=c(1,1,1)
+)
+mtext(side = 4,text=c(expression(u[tot]),expression(u[r])),at=us)
+```
+
