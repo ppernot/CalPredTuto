@@ -117,7 +117,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.1" data-path="presentation.html"><a href="presentation.html#example-one"><i class="fa fa-check"></i><b>4.1</b> Example one</a></li>
 <li class="chapter" data-level="4.2" data-path="presentation.html"><a href="presentation.html#example-two"><i class="fa fa-check"></i><b>4.2</b> Example two</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="cases.html"><a href="cases.html"><i class="fa fa-check"></i><b>5</b> Cases study</a></li>
+<li class="chapter" data-level="5" data-path="cases.html"><a href="cases.html"><i class="fa fa-check"></i><b>5</b> Cases study</a><ul>
+<li class="chapter" data-level="5.1" data-path="cases.html"><a href="cases.html#importance-of-systematic-errors"><i class="fa fa-check"></i><b>5.1</b> Importance of systematic errors</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="cases.html"><a href="cases.html#synthetic-data"><i class="fa fa-check"></i><b>5.1.1</b> Synthetic data</a></li>
+<li class="chapter" data-level="5.1.2" data-path="cases.html"><a href="cases.html#simple-regression-with-quadratic-calibration-model"><i class="fa fa-check"></i><b>5.1.2</b> Simple regression with quadratic calibration model</a></li>
+<li class="chapter" data-level="5.1.3" data-path="cases.html"><a href="cases.html#prise-en-compte-des-erreurs-systematiques"><i class="fa fa-check"></i><b>5.1.3</b> Prise en compte des erreurs systématiques</a></li>
+<li class="chapter" data-level="5.1.4" data-path="cases.html"><a href="cases.html#comparison-of-parameters-uncertainties"><i class="fa fa-check"></i><b>5.1.4</b> Comparison of parameters uncertainties</a></li>
+<li class="chapter" data-level="5.1.5" data-path="cases.html"><a href="cases.html#uncertainty-propagation"><i class="fa fa-check"></i><b>5.1.5</b> Uncertainty propagation</a></li>
+</ul></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
@@ -161,43 +169,34 @@ In many cases, one assumes that random errors are described by a normal distribu
 <div id="systematic-errors" class="section level3">
 <h3><span class="header-section-number">2.1.2</span> Systematic errors</h3>
 <p>The GUM <span class="citation">(BIPM et al. <a href="#ref-GUM">2008</a>)</span> recommends to incorporate systematic errors in the measurement model. What remains in the uncertainty model is the uncertainty on such corrections.</p>
-However, the measurement uncertainties published in the scientific or technical literature often result from the combination of random and systematic contributions. In such cases, a variance-covariance matrix (<span class="math inline">\(\Sigma_y\)</span>) should ideally be provided with the data <span class="citation">(BIPM et al. <a href="#ref-GUMSupp2">2011</a>)</span>. The error variables are no longer statistically independent and should be described as
+However, the measurement uncertainties published in the scientific or technical literature often result from the combination of random and systematic contributions. In such cases, a variance-covariance matrix (<span class="math inline">\(\boldsymbol{\Sigma}_y\)</span>) should ideally be provided with the data <span class="citation">(BIPM et al. <a href="#ref-GUMSupp2">2011</a>)</span>. The error variables are no longer statistically independent and should be described as a <span class="math inline">\(N\)</span>-vector
 <span class="math display" id="eq:norm-err-mult">\[\begin{equation}
-  \{\epsilon_i\}_{i=1}^N \sim \mathcal{N}_N(0,\Sigma_y), 
+  \boldsymbol{\epsilon} \sim \mathcal{N}_N(0,\boldsymbol{\Sigma}_y), 
 \tag{2.3}
 \end{equation}\]</span>
 <p>where <span class="math inline">\(\mathcal{N}_N(.,.)\)</span> is a <span class="math inline">\(N\)</span>-variate normal distribution.</p>
-<p>Unfortunately, it is rarely the case that <span class="math inline">\(\Sigma_y\)</span> is available, or when available it might be corrupted by excessive rounding. The modeler has therefore often to build <span class="math inline">\(\Sigma_y\)</span> from limited information, and/or to do some reverse uncertainty engineering, <em>i.e.</em> to infer the respective contributions of both error types. Note that this is possible only in a limited number of cases, and with strong hypotheses on the contributions.</p>
-Considering two error sources, one redefines the calibration model
+<p>Unfortunately, it is rarely the case that <span class="math inline">\(\boldsymbol{\Sigma}_y\)</span> is available, or when available it might be corrupted by excessive rounding. The modeler has therefore often to build <span class="math inline">\(\boldsymbol{\Sigma}_y\)</span> from limited information, and/or to do some reverse uncertainty engineering, <em>i.e.</em> to infer the respective contributions of both error types. Note that this is possible only in a limited number of cases, and with strong hypotheses on the contributions.</p>
+Considering that two error sources have been aggregated into a single one with standard deviation <span class="math inline">\(u_{tot}\)</span>, one redefines the calibration model as
 <span class="math display" id="eq:cal-mod-sys">\[\begin{equation}
   y_i = m(x_i;\theta) + \epsilon_{i,r} + \epsilon_s,
 \tag{2.4}
 \end{equation}\]</span>
-where
-<span class="math display" id="eq:norm-err-sys">\[\begin{equation}
-  \epsilon_{r,s} \sim  N(0,u^2_{r,s}).
-\tag{2.5}
-\end{equation}\]</span>
-<span class="math inline">\(u_r\)</span> et <span class="math inline">\(u_s\)</span> are unknown with constraint
-<span class="math display" id="eq:utot">\[\begin{equation}
-  u_r^2 + u_s^2 = u_{tot}^2
-\tag{2.6}
-\end{equation}\]</span>
+<p>where <span class="math inline">\(\epsilon_{\{r,s\}} \sim N(0,u^2_{\{r,s\}})\)</span>. Both <span class="math inline">\(u_r\)</span> et <span class="math inline">\(u_s\)</span> are unknown with constraint <span class="math inline">\(u_r^2 + u_s^2 = u_{tot}^2\)</span>.</p>
 The covariance of two measurements is
 <span class="math display" id="eq:cov">\[\begin{equation}
-  {\rm Cov}(y_i,y_j) = u_r^2\ \delta_{ij} + u_s^2
-\tag{2.7}
+  {\rm Cov}(y_i,y_j) = u_r^2\ \delta_{ij} + u_s^2,
+\tag{2.5}
 \end{equation}\]</span>
-One can also express the covariance matrix using a correlation coefficient <span class="math inline">\(\rho\)</span>
+and one can also express the covariance matrix using a correlation coefficient <span class="math inline">\(\rho\)</span>
 <span class="math display" id="eq:cov-mat">\[\begin{equation}
-  \boldsymbol{U}=u^{2}_{tot}\left(\begin{array}{cccc}
+  \boldsymbol{\Sigma}_y=u^{2}_{tot}\left(\begin{array}{cccc}
     1 &amp; \rho &amp; \cdots &amp; \rho\\
     \rho &amp; 1 &amp; \ddots &amp; \vdots\\
     \vdots &amp; \ddots &amp; \ddots &amp; \rho\\
     \rho &amp; \cdots &amp; \rho &amp; 1
     \end{array}\right),
     \ {\rm with}\  \rho=\frac{u^2_{s}}{u^2_{tot}}
-\tag{2.8}
+\tag{2.6}
 \end{equation}\]</span>
 
 </div>

@@ -117,7 +117,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li class="chapter" data-level="4.1" data-path="presentation.html"><a href="presentation.html#example-one"><i class="fa fa-check"></i><b>4.1</b> Example one</a></li>
 <li class="chapter" data-level="4.2" data-path="presentation.html"><a href="presentation.html#example-two"><i class="fa fa-check"></i><b>4.2</b> Example two</a></li>
 </ul></li>
-<li class="chapter" data-level="5" data-path="cases.html"><a href="cases.html"><i class="fa fa-check"></i><b>5</b> Cases study</a></li>
+<li class="chapter" data-level="5" data-path="cases.html"><a href="cases.html"><i class="fa fa-check"></i><b>5</b> Cases study</a><ul>
+<li class="chapter" data-level="5.1" data-path="cases.html"><a href="cases.html#importance-of-systematic-errors"><i class="fa fa-check"></i><b>5.1</b> Importance of systematic errors</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="cases.html"><a href="cases.html#synthetic-data"><i class="fa fa-check"></i><b>5.1.1</b> Synthetic data</a></li>
+<li class="chapter" data-level="5.1.2" data-path="cases.html"><a href="cases.html#simple-regression-with-quadratic-calibration-model"><i class="fa fa-check"></i><b>5.1.2</b> Simple regression with quadratic calibration model</a></li>
+<li class="chapter" data-level="5.1.3" data-path="cases.html"><a href="cases.html#prise-en-compte-des-erreurs-systematiques"><i class="fa fa-check"></i><b>5.1.3</b> Prise en compte des erreurs systématiques</a></li>
+<li class="chapter" data-level="5.1.4" data-path="cases.html"><a href="cases.html#comparison-of-parameters-uncertainties"><i class="fa fa-check"></i><b>5.1.4</b> Comparison of parameters uncertainties</a></li>
+<li class="chapter" data-level="5.1.5" data-path="cases.html"><a href="cases.html#uncertainty-propagation"><i class="fa fa-check"></i><b>5.1.5</b> Uncertainty propagation</a></li>
+</ul></li>
+</ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
@@ -141,8 +149,312 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
             <section class="normal" id="section-">
 <div id="cases" class="section level1">
 <h1><span class="header-section-number">Chapitre 5</span> Cases study</h1>
-<p>We have finished a nice book.</p>
+<div id="importance-of-systematic-errors" class="section level2">
+<h2><span class="header-section-number">5.1</span> Importance of systematic errors</h2>
+<div id="synthetic-data" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> Synthetic data</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Define model</span>
+fExpr =<span class="st"> </span>function(a,b,c) a +<span class="st"> </span>b*x +<span class="st"> </span>c*x^<span class="dv">2</span>
 
+xm =<span class="st"> </span><span class="dv">1</span>:<span class="dv">10</span> <span class="co"># Controle variable</span>
+xp =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">15</span>,<span class="dt">by=</span><span class="fl">0.1</span>) <span class="co"># Grille de points pour tracer les courbes</span>
+
+x =<span class="st"> </span>xm
+a =<span class="st"> </span><span class="dv">1</span>; b =<span class="st"> </span><span class="dv">2</span>; c =<span class="st"> </span><span class="dv">3</span>
+ym =<span class="st"> </span><span class="kw">fExpr</span>(a,b,c) <span class="co"># Evaluate model</span>
+ 
+sdm =<span class="st"> </span><span class="dv">10</span>
+yo =<span class="st"> </span>ym +<span class="st"> </span>sdm *<span class="st"> </span><span class="kw">rnorm</span>(<span class="kw">length</span>(ym),<span class="dt">mean=</span><span class="dv">0</span>,<span class="dt">sd=</span><span class="dv">1</span>) <span class="co"># Add random noise</span>
+
+uym =<span class="st"> </span><span class="dv">3</span>*<span class="kw">rep</span>(sdm,<span class="kw">length</span>(ym)) <span class="co"># Declare larger uncertainty </span>
+
+<span class="kw">pander</span>(<span class="kw">data.frame</span>(xm,yo,uym), <span class="dt">digits=</span><span class="dv">0</span>)</code></pre></div>
+<table style="width:21%;">
+<colgroup>
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">xm</th>
+<th align="center">yo</th>
+<th align="center">uym</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="center">-6</td>
+<td align="center">30</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="center">20</td>
+<td align="center">30</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">45</td>
+<td align="center">30</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="center">34</td>
+<td align="center">30</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="center">90</td>
+<td align="center">30</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="center">126</td>
+<td align="center">30</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="center">156</td>
+<td align="center">30</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="center">204</td>
+<td align="center">30</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="center">256</td>
+<td align="center">30</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="center">312</td>
+<td align="center">30</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="simple-regression-with-quadratic-calibration-model" class="section level3">
+<h3><span class="header-section-number">5.1.2</span> Simple regression with quadratic calibration model</h3>
+<p>The model is <span class="math display">\[
+  y_i = m(x_i;\theta) + \epsilon_{i,tot},
+\]</span> with <span class="math display">\[
+  m_i(\theta) = a + b*x_i + c*x_i^2
+\]</span></p>
+<p>A weighted least-squares fit is done, with weights <span class="math inline">\(w_i = 1/u^2_{tot}\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reg3 =<span class="st"> </span><span class="kw">lm</span>(yo ~<span class="st"> </span><span class="dv">1</span> +<span class="st"> </span>xm +<span class="st"> </span><span class="kw">I</span>(xm^<span class="dv">2</span>), 
+         <span class="dt">weights=</span><span class="dv">1</span>/uym^<span class="dv">2</span>)</code></pre></div>
+<p>On trace la courbe du modèle correspondant aux valeurs optimales des paramètres. Le fit a l’air très bon (le modèle passe par toutes les barres d’erreur)…</p>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div id="validation" class="section level4">
+<h4><span class="header-section-number">5.1.2.1</span> Validation</h4>
+<p>Considérons d’abord l’affichage standard des résultats de la régression linéaire pour <code>lm()</code>.</p>
+<pre><code>## 
+## Call:
+## lm(formula = yo ~ 1 + xm + I(xm^2), weights = 1/uym^2)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.73748 -0.09575  0.01983  0.20531  0.43798 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -8.1247    12.7703  -0.636 0.544868    
+## xm            5.2623     5.3334   0.987 0.356676    
+## I(xm^2)       2.6714     0.4725   5.654 0.000772 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3619 on 7 degrees of freedom
+## Multiple R-squared:  0.992,  Adjusted R-squared:  0.9898 
+## F-statistic:   436 on 2 and 7 DF,  p-value: 4.505e-08</code></pre>
+<p>Tout semble normal: les valeurs de <span class="math inline">\(R^2\)</span> sont bonnes. La seule alerte vient du fait que pour une régression pondérée, on devrait avoir un écart-type des résidus proche de 1. Ici, il vaut 0.36.</p>
+
+<div class="rmdwarning">
+On notera que les incertitudes sur les paramètres sont identiques à celles obtenues précédemment avec des incertitudes de mesure trois fois moindres. La philosophie implémentée dans <code>lm()</code> est de calculer les incertitudes des paramètres après correction/scaling de l’écart-type des résidus. Le programme ajuste donc les incertitudes de mesure pour rendre la régression statistiquement valide. En pratique, le programme utilise uniquement les poids et détermine l’incertitude-type adéquate, comme pour la <em>méthode des moindres carrés ordinaire</em> (OLS). Dans la mesure où il est suicidaire d’évaluer des incertitudes paramétriques pour un modèle non valide, ce choix est défendable. Pour outrepasser ce comportement et avoir une estimation des incertitudes paramétriques correspondant aux incertitudes de mesure réelles, il faut corriger ces dernières en les divisant par l’écart-type des résidus affiché dans le résumé (<span class="math inline">\(\sigma=\)</span> <code>r round(summary(reg3)$sigma,2)</code>). Dans notre exemple, cela revient en gros à les multiplier par 3…
+</div>
+<p></p>
+<p>Une analyse du <span class="math inline">\(\chi^2\)</span> est sans doute plus parlante:</p>
+<pre><code>## *** Chi2 Analysis ***
+##  yo ~ 1 + xm + I(xm^2) 
+## 
+##  ndf      =  7 
+##  chi2_obs =  0.917  ( chi2_red =  0.131 )
+##  P(chi2&gt;chi2_obs) =  0.996 
+##  Q05= 2.17 ,  Q95= 14.1</code></pre>
+<p>La valeur du <span class="math inline">\(\chi^2\)</span> est trop petite, invalidant le modèle statistique. Cela peut provenir de deux sources:</p>
+<ul>
+<li>le modèle est trop complexe et on ajuste les variations dues au bruit;</li>
+<li>les incertitudes déclarées sont trop grandes (ce qui est notre cas).</li>
+</ul>
+<p>On peut confirmer ce point par l’examen des erreurs résiduelles. On voit bien que la dispersion des erreurs est nettement plus petite que les incertitudes déclarées.</p>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><strong>Note.</strong> Souvent, des incertitudes trop grandes proviennent de l’agrégation “sauvage” des contributions aléatoires et systématiques. En toute rigueur, une matrice de covariance devrait être fournie dans ce cas, ou au moins un budget détaillé des contributions pour chaque point. Si ce n’est pas le cas, on peut tenter d’analyser les données avec un modèle impliquant l’ajustement d’une matrice de variance-covariance (<em>cf.</em> ci-dessous).</p>
+</div>
+</div>
+<div id="prise-en-compte-des-erreurs-systematiques" class="section level3">
+<h3><span class="header-section-number">5.1.3</span> Prise en compte des erreurs systématiques</h3>
+<p>On redéfinit le modèle d’analyse (et de mesure) <span class="math display">\[
+ y_i = m_i(\theta) + \epsilon_{i,r} + \epsilon_s,
+\]</span> avec <span class="math display">\[
+ \epsilon_{r,s} \sim  N(0,u^2_{r,s})
+\]</span></p>
+<div id="echantillon-des-parametres-detalonnage" class="section level4">
+<h4><span class="header-section-number">5.1.3.1</span> Echantillon des paramètres d’étalonnage</h4>
+<p>Pour générer un échantillon des paramètres compatibles avec les données et leur modèle statistique, on utilise une méthode de type Chaîne de Markov basée sur une approche bayésienne (cf. <a href="http://mc-stan.org">Stan</a>).</p>
+<p>On utilise la densité <em>a posteriori</em> <span class="math display">\[
+  p(a,b,c,\rho|\boldsymbol{D},u_{tot}) \propto 
+    (\det \boldsymbol{\Sigma}_y)^{−1/2}
+   \exp\left(-\frac{1}{2}E^T.\boldsymbol{\Sigma}_y^{-1}.E\right)\ 
+    p(a,b,c,\rho)
+\]</span></p>
+<p>avec <span class="math inline">\(E_i=y_i-m(x_i;a,b,c)\)</span> et une densité <em>a priori</em> uniforme <span class="math inline">\(p(a,b,c,\rho)=c^{te}\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="st"> &quot;</span>
+<span class="st">data {</span>
+<span class="st">  int N;</span>
+<span class="st">  vector[N] x;</span>
+<span class="st">  vector[N] y;</span>
+<span class="st">  vector[N] uy;</span>
+<span class="st">}</span>
+<span class="st">parameters {</span>
+<span class="st">  real a;</span>
+<span class="st">  real b;</span>
+<span class="st">  real c;</span>
+<span class="st">  real &lt;lower=0, upper=1&gt; rho;</span>
+<span class="st">}</span>
+<span class="st">transformed parameters {</span>
+<span class="st">  vector[N] mu_M;</span>
+<span class="st">  cov_matrix[N] U;</span>
+<span class="st">  </span>
+<span class="st">  # Data cov matrix</span>
+<span class="st">  for (k in 1:(N-1)) {</span>
+<span class="st">    for (l in (k+1):N) {</span>
+<span class="st">      U[k,l] = uy[k]*uy[l]*rho;</span>
+<span class="st">      U[l,k] = U[k,l];</span>
+<span class="st">    }</span>
+<span class="st">    U[k,k] = uy[k]^2;</span>
+<span class="st">  }</span>
+<span class="st">  U[N,N] = uy[N]^2;</span>
+<span class="st">  </span>
+<span class="st">  mu_M = a + b * x + c * x .* x;</span>
+<span class="st">  </span>
+<span class="st">}</span>
+<span class="st">model {</span>
+<span class="st">  y ~ multi_normal(mu_M, U);</span>
+<span class="st">}</span>
+<span class="st">&quot;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pars =<span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;a&#39;</span>,<span class="st">&#39;b&#39;</span>,<span class="st">&#39;c&#39;</span>,<span class="st">&#39;rho&#39;</span>)
+fit =<span class="st"> </span><span class="kw">stan</span>(<span class="dt">model_code =</span> mod1,
+           <span class="dt">model_name =</span> <span class="st">&#39;Cov&#39;</span>,
+           <span class="dt">data =</span> <span class="kw">list</span>(<span class="dt">N =</span><span class="kw">length</span>(xm), <span class="dt">x=</span>xm, <span class="dt">y=</span>yo, <span class="dt">uy=</span>uym),
+           <span class="dt">pars =</span> pars,
+           <span class="dt">iter =</span> <span class="dv">2000</span>, <span class="dt">chains =</span> <span class="dv">1</span>, 
+           <span class="dt">warmup =</span> <span class="dv">1000</span>, <span class="dt">verbose=</span><span class="ot">FALSE</span>, <span class="dt">refresh=</span><span class="dv">0</span>)</code></pre></div>
+<pre><code>## 
+##  Elapsed Time: 0.25 seconds (Warm-up)
+##                0.2 seconds (Sampling)
+##                0.45 seconds (Total)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(fit)</code></pre></div>
+<pre><code>## Inference for Stan model: Cov.
+## 1 chains, each with iter=2000; warmup=1000; thin=1; 
+## post-warmup draws per chain=1000, total post-warmup draws=1000.
+## 
+##        mean se_mean    sd   2.5%    25%    50%    75%  97.5% n_eff Rhat
+## a     -6.94    1.67 30.07 -65.90 -28.59  -5.42  15.32  48.37   323 1.00
+## b      5.02    0.39  6.97  -8.85   0.58   5.17   9.28  19.00   325 1.00
+## c      2.68    0.03  0.63   1.41   2.30   2.67   3.09   3.91   332 1.01
+## rho    0.74    0.01  0.18   0.25   0.67   0.79   0.86   0.92   228 1.00
+## lp__ -33.93    0.12  1.57 -37.83 -34.80 -33.65 -32.72 -31.91   180 1.00
+## 
+## Samples were drawn using NUTS(diag_e) at Thu Dec  1 14:34:39 2016.
+## For each parameter, n_eff is a crude measure of effective sample size,
+## and Rhat is the potential scale reduction factor on split chains (at 
+## convergence, Rhat=1).</code></pre>
+<p><strong>Note</strong>: La valeur du coefficient de corrélation <span class="math inline">\(\rho=\)</span> 0.74 <span class="math inline">\(\pm\)</span> 0.18 est compatible avec la valeur attendue (0.89), et capture bien le rôle dominant des erreurs systématiques. Comme on a seulement 10 points expérimentaux, il est normal que l’incertitude sur <span class="math inline">\(\rho\)</span> soit grande.</p>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">pairs</span>(fit,<span class="dt">gap=</span><span class="dv">0</span>)</code></pre></div>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
+<div id="comparison-of-parameters-uncertainties" class="section level3">
+<h3><span class="header-section-number">5.1.4</span> Comparison of parameters uncertainties</h3>
+<p>Comparison of the parameters mean values and uncertainties shows that the data correlation matrix has a weak impact on the former (the differences are much smaller than the uncertainties). By contrast, the impact on the uncertainties is strong, especially for <span class="math inline">\(b\)</span> and <span class="math inline">\(c\)</span>.</p>
+<table style="width:85%;">
+<colgroup>
+<col width="11%" />
+<col width="19%" />
+<col width="18%" />
+<col width="18%" />
+<col width="18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"> </th>
+<th align="center">Correl.mean</th>
+<th align="center">Correl.unc</th>
+<th align="center">Indep.mean</th>
+<th align="center">Indep.unc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>a</strong></td>
+<td align="center">-6.9</td>
+<td align="center">30</td>
+<td align="center">-8.1</td>
+<td align="center">35</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>b</strong></td>
+<td align="center">5</td>
+<td align="center">7</td>
+<td align="center">5.3</td>
+<td align="center">15</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>c</strong></td>
+<td align="center">2.7</td>
+<td align="center">0.63</td>
+<td align="center">2.7</td>
+<td align="center">1.3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="uncertainty-propagation" class="section level3">
+<h3><span class="header-section-number">5.1.5</span> Uncertainty propagation</h3>
+<p>In order to recycle the sample generated by the Bayesian analysis, on performs UP by Monte Carlo. A sample of parameters for the “independent data” scenario is generated from the summary statistics os the linear fit.</p>
+<div id="parameters-samples" class="section level4">
+<h4><span class="header-section-number">5.1.5.1</span> Parameters samples</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Régression linéaire: on suppose une distribution normale</span>
+<span class="co"># et on utilise les covariances estimées</span>
+x.pdf =<span class="st"> </span><span class="kw">rep</span>(<span class="st">&#39;norm&#39;</span>,<span class="dv">3</span>) <span class="co"># Define PDFs</span>
+X =<span class="st"> </span><span class="kw">xSample</span>(<span class="dt">M=</span><span class="dv">1000</span>, <span class="dt">x.mu=</span>x.mu, <span class="dt">x.u=</span>x.u, <span class="dt">x.cor=</span>x.cor, <span class="dt">x.pdf=</span>x.pdf)
+
+<span class="co"># Méthode MCMC: on utilise directement l&#39;échantillon a posteriori</span>
+X1 =<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">extract</span>(fit,<span class="st">&#39;a&#39;</span>)[[<span class="dv">1</span>]],
+          <span class="kw">extract</span>(fit,<span class="st">&#39;b&#39;</span>)[[<span class="dv">1</span>]],
+          <span class="kw">extract</span>(fit,<span class="st">&#39;c&#39;</span>)[[<span class="dv">1</span>]],
+          <span class="kw">extract</span>(fit,<span class="st">&#39;rho&#39;</span>)[[<span class="dv">1</span>]])
+<span class="kw">colnames</span>(X1)=<span class="st"> </span>pars</code></pre></div>
+<p>The scatterplot of the parameters samples illustrates clearly the difference in uncertainty and correlation.</p>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="comparison-of-predictions" class="section level4">
+<h4><span class="header-section-number">5.1.5.2</span> Comparison of predictions</h4>
+<p>One plots below the 95% prediction intervals using both Monte Carlo samples. The profiles are quite different:</p>
+<ul>
+<li><p>in the “independent data” hypothesis, the dispersion of predictions is notably smaller than the error bars in the calibration range and widens markedly as one extrapolates;</p></li>
+<li><p>at the opposite, for the “correlated data” hypothesis, predictions uncertainty intervals cover most of the error bars in the calibration range (prevalence of systematic errors) des erreurs systématiques) and widens weakly out os this range.</p></li>
+</ul>
+<p><img src="Cal-Pred_files/figure-html/unnamed-chunk-18-1.png" width="768" /></p>
+<p>The prediction uncertainties for both scenarii are plotted below and compared to <span class="math inline">\(u_r\)</span> and <span class="math inline">\(u_{tot}\)</span>. <img src="Cal-Pred_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+
+</div>
+</div>
+</div>
 </div>
             </section>
 
