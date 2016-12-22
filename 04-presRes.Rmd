@@ -1,7 +1,13 @@
 # Presentation of results {#presentation}
 
-Some _significant_ applications are demonstrated in this chapter.
+## Rounding of results
 
-## Example one
+## Rounding of covariance matrices
 
-## Example two
+See examples and Eq. 11 in [@Ezhela2007]
+
+__Proposition in GUM-Supp2__ [@GUMSupp2]
+
+_3.21 NOTE 5_
+
+> "When presenting numerical values of the off-diagonal elements of a correlation matrix, rounding to three places of decimals is often sufficient. However, if the correlation matrix is close to being singular, more decimal digits need to be retained in order to avoid numerical difficulties when using the correlation matrix as input to an uncertainty evaluation. The number of decimal digits to be retained depends on the nature of the subsequent calculation, but as a guide can be taken as the number of decimal digits needed to represent the smallest eigenvalue of the correlation matrix with two significant decimal digits. For a correlation matrix of dimension 2 × 2, the eigenvalues λmax and λmin are 1± |r|, the smaller, λmin , being 1 − |r|, where r is the off-diagonal element of the matrix. If a correlation matrix is known to be singular prior to rounding, rounding towards zero reduces the risk that the rounded matrix is not positive semi-definite."

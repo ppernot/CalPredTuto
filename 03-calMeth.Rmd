@@ -1,3 +1,276 @@
 # Calibration Methods {#methods}
 
 We describe our methods in this chapter.
+
+Cite [@Yardin2013]
+
+## Estimation of the mean and standard deviation of a sample
+
+$$
+\begin{aligned}
+  y_i &= \mu + \epsilon_i \\
+  \epsilon_i &\sim N(0,\sigma)
+\end{aligned}
+$$
+
+* Likelihood
+$$
+   p(D|\mu,\sigma) = \frac{1}{(\sqrt{2\pi}\sigma)^N}
+                               \exp\left(-\sum_i\frac{(y_i-\mu)^2}
+                                               {2\sigma^2}\right)
+$$
+
+* Prior
+$$
+  p(\mu,\sigma) \propto \sigma^{-1}
+$$
+
+### Estimation of $\mu$
+
+$$
+\begin{aligned}
+  p(\mu|D) &= \int p(\mu,\sigma|D) d\sigma \\
+           &= \int \frac{1}{\sqrt{2\pi}^N\sigma^{N+1}}
+                            \exp\left(-\sum_i\frac{(y_i-\mu)^2}
+                                    {2\sigma^2}\right)\ d\sigma \\
+           &\propto \left(1 + \frac{(\bar{y}-\mu)^2}{s^2}\right)^{-N/2} \\
+  {\rm avec}\ \bar{y} &= \frac{1}{N-1}\sum_i  y_i\ \  {\rm et}\ \  s^2=\frac{1}{N-1}\sum_i (y_i - \bar{y})^2
+\end{aligned}
+$$
+which is a Student's distribution with $N-1$ degrees of freedom. One used
+$\int_{0}^{\infty}dx\,x^{-n}\exp\left(-a/x^{2}\right)\propto a^{-(n-1)/2}$
+$\sum_{i=1}^{N}\left(y_{i}-\mu\right)^{2}=N\left(s^{2}+\left(\overline{y}-\mu\right)^{2}\right)$
+
+$$
+\begin{aligned}
+  \rm{E}(\mu) &= \bar{y} \\
+  \rm{Var}(\mu) &= \frac{N-1}{N-3}\frac{s^2}{N}
+\end{aligned}
+$$
+
+### Estimation of $\sigma$
+
+$$
+\begin{aligned}
+p(\sigma|D)&=\int_{-\infty}^{\infty}d\mu\,p(\mu,\sigma|D)\\
+           &\propto\frac{1}{\sigma^{N+1}}\exp\left(-\frac{Ns^{2}}{2\sigma^{2}}\right)\int_{-\infty}^{\infty}d\mu\exp\left(-\frac{N\left(\overline{y}-\mu\right)^{2}}{2\sigma^{2}}\right)
+\end{aligned}
+$$
+Using
+$$
+\int_0^\infty dx\,x^{-n}e^{-a/x^{2}}=\frac{1}{2}\Gamma\left(\frac{n-1}{2}\right)a^{(1-n)/2}
+$$
+one gets
+$$
+p(\sigma|D)\propto\frac{1}{\sigma^{N}}\exp\left(-\frac{Ns^{2}}{2\sigma^{2}}\right)
+$$
+which is an Inverse Gamma distribution.
+
+$$
+\begin{align*}
+<\sigma> & =s\,\sqrt{\frac{N}{2}}\frac{\Gamma\left[(N-2)/2\right]}{\Gamma\left[(N-1)/2\right]};\,<\sigma^{2}>=\frac{N}{N-3}s^{2}\\
+u_{\sigma} & =s\,\sqrt{\frac{N}{N-3}-\frac{N}{2}\left(\frac{\Gamma\left[(N-2)/2\right]}{\Gamma\left[(N-1)/2\right]}\right)^{2}}
+\end{align*}
+$$
+
+```{r include=FALSE}
+Nmax=100
+y = rnorm(Nmax)
+mu = u_mu = u_mu0 = sig = u_sig = s = double(Nmax)*NA
+
+for (N in 3:Nmax) {
+  mu[N]    = mean(y[1:N])
+  s[N]     = sd(y[1:N])
+  u_mu0[N] = sqrt(1/N)*s[N] 
+  u_mu[N]  = sqrt((N-1)/(N-3))*u_mu0[N] 
+  sig[N]   = s[N]*sqrt(N/2)*gamma((N-2)/2)/gamma((N-1)/2)
+  u_sig[N] = s[N]*sqrt(N/(N-3) - N/2 *(gamma((N-2)/2)/gamma((N-1)/2))^2 )
+}
+
+x=1:Nmax
+par(mfrow=c(1,2),pty='s',mar=c(3,5,1,1),mex=0.7)
+plot(x,mu,type='p',pch=20,col=4,ylim=c(-1,1))
+abline(h=0);grid();box()
+lines(x,u_mu*1.96,col=2,lwd=2,lty=1)
+lines(x,-u_mu*1.96,col=2,lwd=2,lty=1)
+lines(x,u_mu0*1.96,col=2,lwd=2,lty=2)
+lines(x,-u_mu0*1.96,col=2,lwd=2,lty=2)
+
+plot(x,sig-1,type='p',pch=20,col=4,ylim=c(-2,2))
+abline(h=0);grid();box()
+lines(x,u_sig*1.96,col=2,lwd=2,lty=1)
+lines(x,-u_sig*1.96,col=2,lwd=2,lty=1)
+lines(x,1.96/sqrt(2*(x-1)),col=2,lwd=2,lty=2)
+lines(x,-1.96/sqrt(2*(x-1)),col=2,lwd=2,lty=2)
+```
+
+### Prediction
+
+$$
+\begin{aligned}
+p(y^*|D)&=\int_{-\infty}^{\infty}d\mu\int_{0}^{\infty}d\sigma\:p(y^*|\mu,\sigma)\:p(\mu,\sigma|D)\\
+   &\propto\left(1+\frac{1}{N+1}\left(\frac{y^*-\overline{y}}{s}\right)^{2}\right)^{-N/2}
+\end{aligned}
+$$
+
+Using Student's distribution properties, one gets
+$$
+  y^*=\overline{y}\pm\sqrt{\frac{N+1}{N-3}}s
+$$
+If $\sigma$ is known beforehand, prediction is a little less uncertain
+$$
+  y^*=\overline{y}\pm\sqrt{\frac{N+1}{N}}\sigma
+$$
+
+
+
+
+## Linear calibration/prediction
+
+### Moindres carrés pondérés
+
+__Propagation des incertitudes lors de l'estimation 
+d'une droite d'étalonnage et de son utilisation en prédiction__
+
+* On dispose de $N$ triplets de valeurs $\{x_i,\,y_i,\,u_{y_i}\}$ (on suppose $u_{x_i}$ négligeable ou nul)
+
+* Modèle de mesure: 
+$$
+y_{i}=a+b*x_{i}+\epsilon_{i}
+$$ 
+avec $\epsilon_{i}\sim N(\mu=0,\sigma=u_{y_{i}})$
+\vskip 0.5cm
+
+* Régression linéaire par la méthode des “moindres carrés pondérés” 
+$$
+(\hat{a},\hat{b})=\mathrm{argmin}_{a,b}\chi^{2}(a,b)
+$$
+$$
+\chi^{2}(a,b)	=	\sum_{i=1}^{N}\frac{\left(y_{i}-a-bx_{i}\right)^{2}}
+                                   {u_{y_{i}}^{2}}
+$$
+
+
+### Estimation des paramètres
+
+__Résolution__
+
+1. calculer les moyennes pondérées: 
+$\overline{x}=\frac{\sum w_{i}^{2}x_{i}}{\sum w_{i}^{2}}$ 
+et $\overline{y}=\frac{\sum w_{i}^{2}y_{i}}{\sum w_{i}^{2}}$,    
+avec les poids $w_{i}=1/u_{y_{i}}$
+
+2. recentrer les données:
+$\widetilde{x}_{i}=x_{i}-\overline{x}$ 
+et 
+$\widetilde{y}_{i}=y_{i}-\overline{y}$
+
+3. alors
+$$\hat{b}=\frac{\sum_{i}w_{i}^{2}\widetilde{x}_{i}\widetilde{y}_{i}}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}=\sum_{i}\frac{w_{i}^{2}\widetilde{x}_{i}}{\sum_{j}w_{j}^{2}\widetilde{x}_{j}^{2}}\,y_{i}$$ 
+et 
+$$\hat{a}=\overline{y}-\hat{b}\overline{x}$$
+* $\hat{a}$ et $\hat{b}$ sont corrélés
+
+
+### Variance/covariance des paramètres
+
+Le calcul des incertitudes-type sur les coefficients de régression 
+peut être mené analytiquement (modèle linéaire en $y_{i}$) en appliquant 
+le GUM:
+
+$$u_{b}^{2}	=	\sum_{i}\left(\frac{w_{i}^{2}\widetilde{x}_{i}}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}\right)^{2}\,u_{y_{i}}^{2}=\frac{1}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}$$
+
+$$u_{a}^{2}	=	\mathrm{Var}(\overline{y})+\overline{x}^{2}u_{b}^{2}=\frac{1}{\sum w_{i}^{2}}+\frac{\overline{x}^{2}}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}$$
+		
+$$\mathrm{cov}(\hat{a},\hat{b})	=	\mathrm{cov}(\overline{y},\hat{b})-\overline{x}*\mathrm{cov}(\hat{b},\hat{b})=-\frac{\overline{x}}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}$$
+
+
+## Prediction
+
+### Prédiction directe
+
+Connaissant les paramètres de la droite de régression et les covariances associées, on veut déterminer l'incertitude liée au calcul d'une valeur de $Y$ en un point $x$ quelconque à l'aide du modèle linéaire. 
+
+* Modèle statistique $$Y=\hat{a}+\hat{b}X+\epsilon$$
+
+    * $\hat{a}$ et $\hat{b}$ représentent les paramètres incertains de la droite de régression;
+    \vskip 0.5cm
+
+    * $X$ représente l'ordonnée pour laquelle on veut une prédiction de $Y$;    
+      $X$ est éventuellement incertaine $x=x_{0}\pm u_{x}$; et
+      \vskip 0.5cm
+
+    * $\epsilon$ représente une erreur aléatoire sur la mesure d'une valeur de $Y$;     
+      $\epsilon$ est de moyenne nulle et d'amplitude dépendant éventuellement de $X$, $\sigma_{\epsilon}(X)$.
+
+
+
+On applique (encore) la loi de combinaison des variances (GUM):
+
+$$y	=	\hat{a}+\hat{b}x_{0}+\hat{\epsilon}$$
+		
+$$
+\begin{aligned}
+u_{y}^{2}	&=	u_{a}^{2}+x_{0}^{2}u_{b}^{2}+2x_{0}\mathrm{cov}(a,b)+\hat{b}^{2}u_{x}^{2}+\sigma_{\epsilon}^{2}(x_{0})\\
+	&=	\frac{1}{\sum w_{i}^{2}}+\frac{\left(x_{0}-\overline{x}\right)^{2}}{\sum_{i}w_{i}^{2}\widetilde{x}_{i}^{2}}+\hat{b}^{2}u_{x}^{2}+\sigma_{\epsilon}^{2}(x_{0})
+\end{aligned}
+$$
+
+En remplaçant $w_{i}^{2}$ par $1/\sigma^{2}$, et dans l'hypothèse d'une incertitude uniforme sur $Y$ ($\sigma_{\epsilon}(X)\equiv\sigma$), on dérive l'expression pour la régression par moindres carrés “ordinaire”
+
+$$u_{y}^{2}	=	\frac{\sigma^{2}}{N}+\frac{\sigma^{2}\left(x_{0}-\overline{x}\right)^{2}}{\sum_{i}\widetilde{x}_{i}^{2}}+\hat{b}^{2}u_{x}^{2}+\sigma^{2}$$
+
+
+
+Selon les scenarii, plusieurs simplifications sont possibles et on retrouve des expressions d'usage courant:
+
+* $X$ sans incertitude et on veut l'incertitude sur l'estimation de la valeur moyenne de $Y$ («confiance») 
+$$u_{y}	=\sigma	\sqrt{\frac{1}{N}+\frac{\left(x_{0}-\overline{x}\right)^{2}}{\sum_{i}\widetilde{x}_{i}^{2}}}$$
+
+* $X$ sans incertitude et on veut l'incertitude sur l'estimation d'une valeur unique de $Y$ («prediction») 
+$$u_{y}	=\sigma	\sqrt{1+\frac{1}{N}+\frac{\left(x_{0}-\overline{x}\right)^{2}}{\sum_{i}\widetilde{x}_{i}^{2}}}$$
+
+__Autres exemples__: Possolo, A. (2013), Five examples of assessment and expression of measurement uncertainty. Appl. Stochastic Models Bus. Ind. 29:1–18. doi: 10.1002/asmb.1947
+
+
+
+### Prédiction inverse
+
+Connaissant les paramètres de la droite de régression et les covariances associées, on veut déterminer l'incertitude liée au calcul d'une valeur de X en un point y quelconque à l'aide du modèle linéaire inverse. 
+
+* Modèle statistique (non-linéaire en $\hat{b}$)
+$$X=\frac{Y-\hat{a}}{\hat{b}}$$
+
+    * $\hat{a}$ et $\hat{b}$ représentent les paramètres incertains de la droite de régression;
+
+    * $Y$ est typiquement incertain $y=y_{0}\pm u_{y}$
+
+
+On applique la loi de combinaison des variances (GUM):
+$$x	=	(y_{0}-\hat{a})/\hat{b}$$
+
+$$
+\begin{aligned}
+u_{x}^{2}	&=	\frac{1}{\hat{b}^{2}}u_{a}^{2}+\left(\frac{y_{0}-\hat{a}}{\hat{b}^{2}}\right)^{2}u_{b}^{2}+2\left(\frac{y_{0}-\hat{a}}{\hat{b}^{3}}\right)\mathrm{cov}(a,b)+\frac{1}{\hat{b}^{2}}u_{y}^{2} \\
+	&=	\frac{1}{\hat{b}^{2}}\left(u_{a}^{2}+x^{2}u_{b}^{2}+2x\mathrm{cov}(a,b)+u_{y}^{2}\right)
+	\end{aligned}
+$$
+
+En remplaçant $w_{i}^{2}$ par $1/\sigma^{2}$, et dans l'hypothèse d'une incertitude uniforme sur $Y$ ($u_{Y}\equiv\sigma$), on dérive l'expression standard
+
+$$u_{x}	=\frac{\sigma}{\left|\hat{b}\right|}	\sqrt{1+\frac{1}{N}+\frac{\left(x-\overline{x}\right)^{2}}{\sum_{i}\widetilde{x}_{i}^{2}}}
+$$
+
+## $\chi^2$ analysis
+
+```{r}
+grViz("
+  digraph rmarkdown {
+    node [shape = circle]
+    'Chi^2'  -> {'<< ndf' '# ndf' '>> ndf'}
+    '<< ndf' -> {'Model \n too complex' 'Uncertainty\n too large'}
+    '# ndf' -> {'Proceed\n to prediction'}
+    '>> ndf' -> {'Model \n too simple' 'Uncertainty\n too small'}
+  }")
+```
+

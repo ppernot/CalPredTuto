@@ -4,13 +4,55 @@ author: "Pascal Pernot, Michèle Désenfant and François Hennebelle"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output:
-  bookdown::gitbook
-bibliography: [book.bib, packages.bib, biblio_base.bib]
+  bookdown::gitbook:
+    config:
+      fontsettings:
+        theme: white
+        family: sans
+        size: 1.2
+bibliography: [book.bib, packages.bib, biblio.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: ppernot/CalPredTuto
 ---
 
+```{r setup, include=FALSE}
+rm(list = ls()); gc() # Clean environment
+
+libs =c('rstan','pander','rgl','knitr',
+        'RColorBrewer','DiagrammeR','aplpack')
+for (lib in libs ) {
+  if(!require(lib,character.only = TRUE))
+    install.packages(lib,dependencies=TRUE)
+ library(lib,character.only = TRUE)
+}
+rstan_options(auto_write = TRUE)
+panderOptions('knitr.auto.asis', TRUE)
+
+if(!require(rgumlib))
+  devtools::install_github("ppernot/rgumlib")
+
+# automatically create a bib database for R packages
+knitr::write_bib(c(.packages(), libs), 'packages.bib')
+
+set.seed(1234) # Initialise la graine du RNG
+
+# Couleurs transparente
+alpha=35
+cols = brewer.pal(8,'Dark2')
+col2tr = function(col,alpha) 
+  rgb(t(col2rgb(col)),alpha=alpha,maxColorValue=255)
+col_tr=c()
+for (i in 1:length(cols))
+  col_tr[i] = col2tr(cols[i],alpha)
+
+blue_tr  = rgb(0.1,0.1,0.9,alpha=0.1) 
+red_tr   = rgb(0.9,0.1,0.1,alpha=0.1)
+green_tr = rgb(0.1,0.9,0.1,alpha=0.1)
+
+col_95 = blue_tr
+
+```
 # Preamble {-}
 
 TBD
@@ -18,10 +60,7 @@ TBD
 
 
 ```{r include=FALSE}
-# automatically create a bib database for R packages
-knitr::write_bib(c(
-  .packages(), 'bookdown', 'knitr', 'rmarkdown'
-), 'packages.bib')
+
 ```
 
 
