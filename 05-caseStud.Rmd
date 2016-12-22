@@ -843,7 +843,7 @@ plotReg(x,y,uy)
 
 ### Gaussian errors
 
-Measurement model:
+Measurement model (standard):
 $$
 y_{i}=a+b*x_{i}+\epsilon_{i}
 $$ 
